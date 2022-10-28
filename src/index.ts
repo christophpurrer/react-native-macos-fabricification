@@ -8,7 +8,7 @@
 import fs from 'fs';
 import path from 'path';
 
-function fabricateFile(file) {
+function fabricateFile(file: string) {
   let content = fs.readFileSync(file, {encoding: 'utf8'});
 
   content = content.replace(
@@ -18,18 +18,22 @@ function fabricateFile(file) {
   content = content.replace('UIColor ', 'RCTUIColor ');
 }
 
-const REACT_NATIVE_MACOS =
-  '/Users/chpurrer/Documents/GitHub/react-native-macos';
 
-function main() {
+function processDirectory(react_native_macos_path: string) {
   [
     'ReactCommon/react/renderer/graphics/platform/ios/RCTPlatformColorUtils.mm',
   ].forEach((file) => {
-    const filePath = path.join(REACT_NATIVE_MACOS, file);
+    const filePath = path.join(react_native_macos_path, file);
     fabricateFile(filePath);
   });
 
   console.log('main');
 }
 
-main();
+const REACT_NATIVE_MACOS =
+  '/Users/chpurrer/Documents/GitHub/react-native-macos';
+
+
+export default async function main(argv: Array<string>) {
+  processDirectory(REACT_NATIVE_MACOS);
+}

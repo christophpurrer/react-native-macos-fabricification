@@ -3,16 +3,16 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "flow": "flow"
+    "lint": "yarn prettier -w src/.",
+    "fabricate": "node src/babel-register.js ./index.ts"
   },
-  "dependencies": {
-    "flow-parser": "^0.190.1"
-  },
-  "type": "module",
   "devDependencies": {
-    "@babel/core": "^7.19.3",
-    "@babel/runtime": "^7.19.0",
-    "flow-bin": "^0.190.0",
-    "prettier": "^2.7.1"
+    "@babel/core":"^7.19.6",
+    "@babel/register":"^7.18.9",
+    "@babel/preset-typescript":"^7.18.6",
+    "@babel/plugin-transform-modules-commonjs":"^7.19.6",
+    "@types/node": "^18.11.7",
+    "prettier": "^2.7.1",
+    "typescript": "^4.8.4"
   }
 }
