@@ -1,0 +1,18 @@
+{
+  "name": "react-native-macos-fabricification",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "flow": "flow"
+  },
+  "dependencies": {
+    "flow-parser": "^0.190.1"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@babel/core": "^7.19.3",
+    "@babel/runtime": "^7.19.0",
+    "flow-bin": "^0.190.0",
+    "prettier": "^2.7.1"
+  }
+}
