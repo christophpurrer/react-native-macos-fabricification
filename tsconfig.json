@@ -1,7 +1,7 @@
 {
     "compileOnSave": false,
     "compilerOptions": {
-      "target": "es2015",
+      "target": "es2019",
       "moduleResolution": "node",
       "module": "commonjs",
       "noErrorTruncation": true,
@@ -20,9 +20,7 @@
       "noUnusedLocals": true,
       "skipLibCheck": true,
       "outDir": "lib",
-      "lib": [
-        "es2019"
-      ]
+      "lib": ["es2019"]
     },
     "include": ["src/**/*"]
 }
