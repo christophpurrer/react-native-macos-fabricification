@@ -7,17 +7,12 @@ import path from 'path';
 
 function fabricateFile(file: string) {
   let content = fs.readFileSync(file, {encoding: 'utf8'});
-  if (file.endsWith('RCTUnimplementedNativeComponentView.h')) {
-    content = content.replaceAll(
-      '#import <UIKit/UIKit.h>',
-      '#import <React/RCTUIKit.h> // TODO(macOS GH#774)\n#import "React/RCTUITextView.h"',
-    );
-  } else {
-    content = content.replaceAll(
-      '#import <UIKit/UIKit.h>',
-      '#import <React/RCTUIKit.h> // TODO(macOS GH#774)',
-    );
-  }
+
+  content = content.replaceAll(
+    '#import <UIKit/UIKit.h>',
+    '#import <React/RCTUIKit.h> // TODO(macOS GH#774)',
+  );
+
   content = content.replaceAll(' UIColor ', ' RCTUIColor ');
   content = content.replaceAll('[UIColor ', '[RCTUIColor ');
   content = content.replaceAll('(UIColor ', '(RCTUIColor ');
@@ -47,7 +42,7 @@ function fabricateFile(file: string) {
     'RCTCeilPixelValue(size.height)',
     'RCTCeilPixelValue(size.height, 1.0)',
   ); // ### HACK !!!
-  content = content.replaceAll('UILabel ', 'RCTUITextView '); // ### MITIGATION !!!
+  content = content.replaceAll('UILabel ', 'RCTUIView '); // ### MITIGATION !!!
   content = content.replaceAll(
     ' _label.layoutMargins = UIEdgeInsetsMake(12, 12, 12, 12);',
     ' //_label.layoutMargins = UIEdgeInsetsMake(12, 12, 12, 12);',
@@ -60,58 +55,46 @@ function fabricateFile(file: string) {
     ' _label.numberOfLines = 0;',
     ' //_label.numberOfLines = 0;',
   ); // ### MITIGATION !!!
+  content = content.replaceAll(
+    ' _label.textAlignment = NSTextAlignmentCenter;',
+    ' //_label.textAlignment = NSTextAlignmentCenter;',
+  ); // ### MITIGATION !!!
+  content = content.replaceAll(
+    ' _label.textColor = [RCTUIColor whiteColor];',
+    ' //_label.textColor = [RCTUIColor whiteColor];',
+  ); // ### MITIGATION !!!
 
   fs.writeFileSync(file, content);
 }
 
-function processDirectory(react_native_macos_path: string) {
-  console.log(`processDirectory :${react_native_macos_path}`);
-  [
-    'ReactCommon/react/renderer/graphics/platform/ios/RCTPlatformColorUtils.mm',
-    'React/Fabric/Mounting/RCTComponentViewProtocol.h',
-    'ReactCommon/react/renderer/textlayoutmanager/platform/ios/RCTTextLayoutManager.h',
-    'ReactCommon/react/renderer/textlayoutmanager/platform/ios/RCTFontUtils.h',
-    'ReactCommon/react/renderer/textlayoutmanager/platform/ios/RCTFontProperties.h',
-    'ReactCommon/react/renderer/textlayoutmanager/platform/ios/RCTFontUtils.mm',
-    'ReactCommon/react/renderer/imagemanager/platform/ios/RCTSyncImageManager.h',
-    'ReactCommon/react/renderer/imagemanager/platform/ios/RCTImageManager.h',
-    'ReactCommon/react/renderer/imagemanager/platform/ios/RCTImagePrimitivesConversions.h',
-    'ReactCommon/react/renderer/textlayoutmanager/platform/ios/RCTAttributedTextUtils.h',
-    'ReactCommon/react/renderer/components/legacyviewmanagerinterop/RCTLegacyViewManagerInteropCoordinator.h',
-    'ReactCommon/react/renderer/textlayoutmanager/platform/ios/NSTextStorage+FontScaling.h',
-    'ReactCommon/react/utils/ManagedObjectWrapper.h',
-    'React/Views/RCTWeakViewHolder.h',
-    'ReactCommon/react/renderer/textlayoutmanager/platform/ios/RCTTextPrimitivesConversions.h',
-    'ReactCommon/react/renderer/components/legacyviewmanagerinterop/RCTLegacyViewManagerInteropCoordinator.mm',
-    'ReactCommon/react/renderer/textlayoutmanager/platform/ios/RCTAttributedTextUtils.mm',
-    'ReactCommon/react/renderer/textlayoutmanager/platform/ios/RCTTextLayoutManager.mm',
-    'React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputUtils.h',
-    'React/Fabric/Mounting/ComponentViews/UnimplementedView/RCTUnimplementedViewComponentView.h',
-    'React/Fabric/Mounting/ComponentViews/UnimplementedComponent/RCTUnimplementedNativeComponentView.h',
-    'React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.h',
-    'React/Fabric/RCTSurfaceRegistry.h',
-    'React/Fabric/Mounting/ComponentViews/Switch/RCTSwitchComponentView.h',
-    'React/Fabric/Mounting/UIView+ComponentViewProtocol.h',
-    'React/Fabric/RCTConversions.h',
-    'React/Fabric/RCTSurfaceTouchHandler.h',
-    'React/Fabric/RCTSurfacePresenterBridgeAdapter.h',
-    'React/Fabric/RCTSurfacePresenter.h',
-    'React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.h',
-    'React/Fabric/RCTTouchableComponentViewProtocol.h',
-    'React/Fabric/RCTSurfaceTouchHandler.mm',
-    'React/Fabric/Mounting/RCTComponentViewFactory.h',
-    'React/Fabric/Mounting/ComponentViews/UnimplementedComponent/RCTUnimplementedNativeComponentView.mm',
-    'React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm',
-    'React/Fabric/Mounting/RCTComponentViewDescriptor.h',
-  ].forEach((file) => {
-    const filePath = path.join(react_native_macos_path, file);
-    fabricateFile(filePath);
-  });
+function processDirectory(rootPath: string) {
+  console.log(`processDirectory :${rootPath}`);
+  const files = fs.readdirSync(rootPath, {withFileTypes: true});
+  files
+    .sort((a, b) => {
+      if (a.isDirectory() && !b.isDirectory()) {
+        return -1;
+      }
+      if (!a.isDirectory() && b.isDirectory()) {
+        return 1;
+      }
+      return 0;
+    })
+    .forEach((file) => {
+      const filePath = path.join(rootPath, file.name)
+      if (file.isDirectory()) {
+        processDirectory(filePath);
+      } else if (file.name.endsWith('.h') || file.name.endsWith('.mm')) {
+        fabricateFile(filePath);
+      }
+    });
 }
 
 const REACT_NATIVE_MACOS =
   '/Users/chpurrer/Documents/GitHub/react-native-macos';
 
 export default async function main(argv: Array<string>) {
-  processDirectory(REACT_NATIVE_MACOS);
+  processDirectory(path.join(REACT_NATIVE_MACOS, 'React/Fabric'));
+  processDirectory(path.join(REACT_NATIVE_MACOS, 'React/Views'));
+  processDirectory(path.join(REACT_NATIVE_MACOS, 'ReactCommon/react'));
 }
