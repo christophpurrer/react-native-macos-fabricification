@@ -7,10 +7,17 @@ import path from 'path';
 
 function fabricateFile(file: string) {
   let content = fs.readFileSync(file, {encoding: 'utf8'});
-  content = content.replaceAll(
-    '#import <UIKit/UIKit.h>',
-    '#import <React/RCTUIKit.h> // TODO(macOS GH#774)',
-  );
+  if (file.endsWith('RCTUnimplementedNativeComponentView.h')) {
+    content = content.replaceAll(
+      '#import <UIKit/UIKit.h>',
+      '#import <React/RCTUIKit.h> // TODO(macOS GH#774)\n#import "React/RCTUITextView.h"',
+    );
+  } else {
+    content = content.replaceAll(
+      '#import <UIKit/UIKit.h>',
+      '#import <React/RCTUIKit.h> // TODO(macOS GH#774)',
+    );
+  }
   content = content.replaceAll(' UIColor ', ' RCTUIColor ');
   content = content.replaceAll('[UIColor ', '[RCTUIColor ');
   content = content.replaceAll('(UIColor ', '(RCTUIColor ');
@@ -21,6 +28,11 @@ function fabricateFile(file: string) {
   content = content.replaceAll(
     '#if TARGET_OS_MAC && TARGET_OS_IPHONE',
     '#if TARGET_OS_MAC && (TARGET_OS_IPHONE || TARGET_OS_OSX)',
+  );
+  content = content.replaceAll(
+    '#import <UIKit/UIGestureRecognizerSubclass.h>',
+    //'#if !TARGET_OS_OSX // [TODO(macOS GH#774)\n#import <UIKit/UIGestureRecognizerSubclass.h>\n#endif',
+    '',
   );
   content = content.replaceAll(
     '[UIFont fontNamesForFamilyName:fontProperties.family]',
@@ -35,6 +47,20 @@ function fabricateFile(file: string) {
     'RCTCeilPixelValue(size.height)',
     'RCTCeilPixelValue(size.height, 1.0)',
   ); // ### HACK !!!
+  content = content.replaceAll('UILabel ', 'RCTUITextView '); // ### MITIGATION !!!
+  content = content.replaceAll(
+    ' _label.layoutMargins = UIEdgeInsetsMake(12, 12, 12, 12);',
+    ' //_label.layoutMargins = UIEdgeInsetsMake(12, 12, 12, 12);',
+  ); // ### MITIGATION !!!
+  content = content.replaceAll(
+    ' _label.lineBreakMode = NSLineBreakByWordWrapping;',
+    ' //_label.lineBreakMode = NSLineBreakByWordWrapping;',
+  ); // ### MITIGATION !!!
+  content = content.replaceAll(
+    ' _label.numberOfLines = 0;',
+    ' //_label.numberOfLines = 0;',
+  ); // ### MITIGATION !!!
+
   fs.writeFileSync(file, content);
 }
 
@@ -71,7 +97,12 @@ function processDirectory(react_native_macos_path: string) {
     'React/Fabric/RCTSurfacePresenterBridgeAdapter.h',
     'React/Fabric/RCTSurfacePresenter.h',
     'React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.h',
-    'React/Fabric/RCTTouchableComponentViewProtocol.h'
+    'React/Fabric/RCTTouchableComponentViewProtocol.h',
+    'React/Fabric/RCTSurfaceTouchHandler.mm',
+    'React/Fabric/Mounting/RCTComponentViewFactory.h',
+    'React/Fabric/Mounting/ComponentViews/UnimplementedComponent/RCTUnimplementedNativeComponentView.mm',
+    'React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm',
+    'React/Fabric/Mounting/RCTComponentViewDescriptor.h',
   ].forEach((file) => {
     const filePath = path.join(react_native_macos_path, file);
     fabricateFile(filePath);
