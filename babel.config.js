@@ -7,8 +7,6 @@ module.exports = function babelConfig(api) {
       '.',
     ],
     presets: ['@babel/typescript'],
-    plugins: [
-            '@babel/plugin-transform-modules-commonjs',
-    ],
+    plugins: ['@babel/plugin-transform-modules-commonjs'],
   };
 };

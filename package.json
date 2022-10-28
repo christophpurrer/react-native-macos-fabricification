@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "lint": "yarn prettier -w src/.",
+    "format": "prettier --write src/**/*.{js,ts}",
     "fabricate": "node src/babel-register.js ./index.ts"
   },
   "devDependencies": {

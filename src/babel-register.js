@@ -41,7 +41,7 @@ async function main() {
   await handler(args);
 }
 
-main().catch(error => {
+main().catch((error) => {
   console.error(error);
   process.exit(1);
 });

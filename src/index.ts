@@ -18,7 +18,6 @@ function fabricateFile(file: string) {
   content = content.replace('UIColor ', 'RCTUIColor ');
 }
 
-
 function processDirectory(react_native_macos_path: string) {
   [
     'ReactCommon/react/renderer/graphics/platform/ios/RCTPlatformColorUtils.mm',
@@ -32,7 +31,6 @@ function processDirectory(react_native_macos_path: string) {
 
 const REACT_NATIVE_MACOS =
   '/Users/chpurrer/Documents/GitHub/react-native-macos';
-
 
 export default async function main(argv: Array<string>) {
   processDirectory(REACT_NATIVE_MACOS);
