@@ -5,6 +5,20 @@
 import fs from 'fs';
 import path from 'path';
 
+function replaceType(content: string, before: string, after: string) {
+  content = content.replaceAll(` ${before} `, ` ${after} `);
+  content = content.replaceAll(`[${before} `, `[${after} `);
+  content = content.replaceAll(`(${before} `, `(${after} `);
+  content = content.replaceAll(`(${before}<`, `(${after}<`);
+  content = content.replaceAll(`<${before} `, `<${after} `);
+  return content;
+}
+
+function commentOut(content: string, token: string) {
+  content = content.replaceAll(` ${content}`, ` //${content}`);
+  return content;
+}
+
 function fabricateFile(file: string) {
   let content = fs.readFileSync(file, {encoding: 'utf8'});
 
@@ -19,14 +33,8 @@ function fabricateFile(file: string) {
       '#import <React/RCTUIKit.h> // TODO(macOS GH#774)',
     );
   }
-
-  content = content.replaceAll(' UIColor ', ' RCTUIColor ');
-  content = content.replaceAll('[UIColor ', '[RCTUIColor ');
-  content = content.replaceAll('(UIColor ', '(RCTUIColor ');
-  content = content.replaceAll('(UIView<', '(RCTUIView<');
-  content = content.replaceAll(' UIView<', ' RCTUIView<');
-  content = content.replaceAll('(UIView ', '(RCTUIView ');
-  content = content.replaceAll(' UIView ', ' RCTUIView ');
+  content = replaceType(content, 'UIColor', 'RCTUIColor');
+  content = replaceType(content, 'UIView', 'RCTUIView');
   content = content.replaceAll(
     '#if TARGET_OS_MAC && TARGET_OS_IPHONE',
     '#if TARGET_OS_MAC && (TARGET_OS_IPHONE || TARGET_OS_OSX)',
@@ -49,7 +57,8 @@ function fabricateFile(file: string) {
     'RCTCeilPixelValue(size.height)',
     'RCTCeilPixelValue(size.height, 1.0)',
   ); // ### HACK !!!
-  content = content.replaceAll('UILabel ', 'RCTUILabel '); // ### MITIGATION !!!
+  content = content.replaceAll(' UILabel ', ' RCTUILabel '); // ### MITIGATION !!!
+  content = content.replaceAll('[UILabel ', '[RCTUILabel '); // ### MITIGATION !!!
   content = content.replaceAll(
     ' _label.layoutMargins = UIEdgeInsetsMake(12, 12, 12, 12);',
     ' //_label.layoutMargins = UIEdgeInsetsMake(12, 12, 12, 12);',
@@ -70,8 +79,13 @@ function fabricateFile(file: string) {
   // ### ACCESSIBILITY !!!
   content = content.replaceAll(
     '\n\nUIAccessibilityTraits const AccessibilityTraitSwitch = 0x20000000000001;',
-    '\n\n#if !TARGET_OS_OSX // TODO(macOS GH#774)\nUIAccessibilityTraits const AccessibilityTraitSwitch = 0x20000000000001;\n#endif',
+    '\n\n#if !TARGET_OS_OSX // TODO(macOS GH#774)\nUIAccessibilityTraits const AccessibilityTraitSwitch = 0x20000000000001;',
   ); // ### HACK !!!
+  content = content.replaceAll(
+    ';\n\ninline CATransform3D RCTCATransform3DFromTransformMatrix(const facebook::react::Transform &transformMatrix)',
+    '\n#endif\n\ninline CATransform3D RCTCATransform3DFromTransformMatrix(const facebook::react::Transform &transformMatrix)',
+  ); // ### HACK !!!
+  commentOut(content, '');
   content = content.replaceAll(
     ' toTextInput.inputAccessoryView = fromTextInput.inputAccessoryView;',
     ' //toTextInput.inputAccessoryView = fromTextInput.inputAccessoryView; ',
@@ -116,6 +130,92 @@ function fabricateFile(file: string) {
     ' [toTextInput setSelectedTextRange:fromTextInput.selectedTextRange notifyDelegate:NO];',
     ' //[toTextInput setSelectedTextRange:fromTextInput.selectedTextRange notifyDelegate:NO];',
   ); // ### HACK !!!
+  content = content.replaceAll(
+    'return autoCorrect.has_value() ? (*autoCorrect ? UITextAutocorrectionTypeYes : UITextAutocorrectionTypeNo)\n  : UITextAutocorrectionTypeDefault;',
+    'return NO;',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' _label.allowsDefaultTighteningForTruncation = YES;',
+    ' //_label.allowsDefaultTighteningForTruncation = YES;',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' _label.adjustsFontSizeToFitWidth = YES;',
+    ' //_label.adjustsFontSizeToFitWidth = YES;',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' self.center = CGPoint{CGRectGetMidX(frame), CGRectGetMidY(frame)};',
+    ' //self.center = CGPoint{CGRectGetMidX(frame), CGRectGetMidY(frame)};',
+  ); // ### HACK !!!
+  content = content.replaceAll('(UITouch ', '(RCTUITouch '); // ### HACK !!!
+  content = content.replaceAll(' UITouch ', ' RCTUITouch '); // ### HACK !!!
+  content = content.replaceAll('<UITouch ', '<RCTUITouch '); // ### HACK !!!
+  content = content.replaceAll(' UISwitch ', ' RCTSwitch '); // ### HACK !!!
+  content = content.replaceAll('[UISwitch ', '[RCTSwitch '); // ### HACK !!!
+  content = content.replaceAll('(UISwitch ', '(RCTSwitch '); // ### HACK !!!
+  content = content.replaceAll(
+    '\n\n#import "RCTSwitchComponentView.h"',
+    '\n#import "React/RCTSwitch.h"\n#import "RCTSwitchComponentView.h"',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    'self.contentView = _switchView;',
+    'RCTUIView* contentView = [RCTUIView init];\n[contentView.superview addSubview:_switchView];\nself.contentView = contentView;',
+  );
+
+  content = content.replaceAll(
+    ' [_switchView addTarget:self action:@selector(onChange:) forControlEvents:UIControlEventValueChanged];',
+    ' //[_switchView addTarget:self action:@selector(onChange:) forControlEvents:UIControlEventValueChanged];',
+  );
+  content = content.replaceAll(
+    ' _switchView.tintColor = RCTUIColorFromSharedColor(newSwitchProps.tintColor);',
+    ' //_switchView.tintColor = RCTUIColorFromSharedColor(newSwitchProps.tintColor);',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' _switchView.onTintColor = RCTUIColorFromSharedColor(newSwitchProps.onTintColor);',
+    ' //_switchView.onTintColor = RCTUIColorFromSharedColor(newSwitchProps.onTintColor);',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' _switchView.thumbTintColor = RCTUIColorFromSharedColor(newSwitchProps.thumbTintColor);',
+    ' //_switchView.thumbTintColor = RCTUIColorFromSharedColor(newSwitchProps.thumbTintColor);',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' self.multipleTouchEnabled = YES;',
+    ' //self.multipleTouchEnabled = YES;',
+  ); // ### HACK !!!
+  content = content.replaceAll('[UIScreen mainScreen].scale', '1.0'); // ### HACK !!!
+  content = content.replaceAll('(UIScrollView ', '(RCTUIScrollView '); // ### HACK !!!
+
+  content = content.replaceAll(
+    ' self.accessibilityElement.isAccessibilityElement = newViewProps.accessible;',
+    ' //self.accessibilityElement.isAccessibilityElement = newViewProps.accessible;',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' self.accessibilityElement.accessibilityLabel = RCTNSStringFromStringNilIfEmpty(newViewProps.accessibilityLabel);',
+    ' //self.accessibilityElement.accessibilityLabel = RCTNSStringFromStringNilIfEmpty(newViewProps.accessibilityLabel);',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' self.accessibilityElement.accessibilityHint = RCTNSStringFromStringNilIfEmpty(newViewProps.accessibilityHint);',
+    ' //self.accessibilityElement.accessibilityHint = RCTNSStringFromStringNilIfEmpty(newViewProps.accessibilityHint);',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    'RCTRoundPixelValue(insets.left);',
+    'RCTRoundPixelValue(insets.left, 1.0);',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    'RCTRoundPixelValue(insets.top);',
+    'RCTRoundPixelValue(insets.top, 1.0);',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    'RCTRoundPixelValue(insets.right);',
+    'RCTRoundPixelValue(insets.right, 1.0);',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    'RCTRoundPixelValue(insets.bottom);',
+    'RCTRoundPixelValue(insets.bottom, 1.0);',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    '\n\n#import <MobileCoreServices/UTCoreTypes.h>',
+    '\n\n#if !TARGET_OS_OSX // TODO(macOS GH#774)\n#import <MobileCoreServices/UTCoreTypes.h>\n#endif',
+  );
   fs.writeFileSync(file, content);
 }
 
