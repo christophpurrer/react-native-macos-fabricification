@@ -8,10 +8,17 @@ import path from 'path';
 function fabricateFile(file: string) {
   let content = fs.readFileSync(file, {encoding: 'utf8'});
 
-  content = content.replaceAll(
-    '#import <UIKit/UIKit.h>',
-    '#import <React/RCTUIKit.h> // TODO(macOS GH#774)',
-  );
+  if (file.endsWith('RCTUnimplementedNativeComponentView.h')) {
+    content = content.replaceAll(
+      '#import <UIKit/UIKit.h>',
+      '#import <React/RCTUIKit.h> // TODO(macOS GH#774)\n#import "React/RCTUITextView.h"',
+    );
+  } else {
+    content = content.replaceAll(
+      '#import <UIKit/UIKit.h>',
+      '#import <React/RCTUIKit.h> // TODO(macOS GH#774)',
+    );
+  }
 
   content = content.replaceAll(' UIColor ', ' RCTUIColor ');
   content = content.replaceAll('[UIColor ', '[RCTUIColor ');
@@ -42,7 +49,7 @@ function fabricateFile(file: string) {
     'RCTCeilPixelValue(size.height)',
     'RCTCeilPixelValue(size.height, 1.0)',
   ); // ### HACK !!!
-  content = content.replaceAll('UILabel ', 'RCTUIView '); // ### MITIGATION !!!
+  content = content.replaceAll('UILabel ', 'RCTUILabel '); // ### MITIGATION !!!
   content = content.replaceAll(
     ' _label.layoutMargins = UIEdgeInsetsMake(12, 12, 12, 12);',
     ' //_label.layoutMargins = UIEdgeInsetsMake(12, 12, 12, 12);',
@@ -51,19 +58,64 @@ function fabricateFile(file: string) {
     ' _label.lineBreakMode = NSLineBreakByWordWrapping;',
     ' //_label.lineBreakMode = NSLineBreakByWordWrapping;',
   ); // ### MITIGATION !!!
+  content = content.replaceAll('UITextAutocorrectionType ', 'NSInteger '); // ### HACK !!!
+  content = content.replaceAll('UITextAutocapitalizationType ', 'NSInteger '); // ### HACK !!!
+  content = content.replaceAll('UIKeyboardAppearance ', 'NSInteger '); // ### HACK !!!
+  content = content.replaceAll('UITextSpellCheckingType ', 'NSInteger '); // ### HACK !!!
+  content = content.replaceAll('UITextFieldViewMode ', 'NSInteger '); // ### HACK !!!
+  content = content.replaceAll('UIKeyboardType ', 'NSInteger '); // ### HACK !!!
+  content = content.replaceAll('UIReturnKeyType ', 'NSInteger '); // ### HACK !!!
+  content = content.replaceAll('UITextContentType ', 'NSInteger '); // ### HACK !!!
+  content = content.replaceAll('UITextInputPasswordRules ', 'NSInteger '); // ### HACK !!!
+  // ### ACCESSIBILITY !!!
   content = content.replaceAll(
-    ' _label.numberOfLines = 0;',
-    ' //_label.numberOfLines = 0;',
-  ); // ### MITIGATION !!!
+    '\n\nUIAccessibilityTraits const AccessibilityTraitSwitch = 0x20000000000001;',
+    '\n\n#if !TARGET_OS_OSX // TODO(macOS GH#774)\nUIAccessibilityTraits const AccessibilityTraitSwitch = 0x20000000000001;\n#endif',
+  ); // ### HACK !!!
   content = content.replaceAll(
-    ' _label.textAlignment = NSTextAlignmentCenter;',
-    ' //_label.textAlignment = NSTextAlignmentCenter;',
-  ); // ### MITIGATION !!!
+    ' toTextInput.inputAccessoryView = fromTextInput.inputAccessoryView;',
+    ' //toTextInput.inputAccessoryView = fromTextInput.inputAccessoryView; ',
+  ); // ### HACK !!!
   content = content.replaceAll(
-    ' _label.textColor = [RCTUIColor whiteColor];',
-    ' //_label.textColor = [RCTUIColor whiteColor];',
-  ); // ### MITIGATION !!!
-
+    ' toTextInput.autocapitalizationType = fromTextInput.autocapitalizationType;',
+    ' //toTextInput.autocapitalizationType = fromTextInput.autocapitalizationType;',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' toTextInput.autocorrectionType = fromTextInput.autocorrectionType;',
+    ' //toTextInput.autocorrectionType = fromTextInput.autocorrectionType;',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' toTextInput.keyboardAppearance = fromTextInput.keyboardAppearance;',
+    ' //toTextInput.keyboardAppearance = fromTextInput.keyboardAppearance;',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' toTextInput.spellCheckingType = fromTextInput.spellCheckingType;',
+    ' //toTextInput.spellCheckingType = fromTextInput.spellCheckingType;',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' toTextInput.clearButtonMode = fromTextInput.clearButtonMode;',
+    ' //toTextInput.clearButtonMode = fromTextInput.clearButtonMode;',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' toTextInput.secureTextEntry = fromTextInput.secureTextEntry;',
+    ' //toTextInput.secureTextEntry = fromTextInput.secureTextEntry;',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' toTextInput.keyboardType = fromTextInput.keyboardType;',
+    ' //toTextInput.keyboardType = fromTextInput.keyboardType;',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' toTextInput.textContentType = fromTextInput.textContentType;',
+    ' //toTextInput.textContentType = fromTextInput.textContentType;',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' toTextInput.passwordRules = fromTextInput.passwordRules;',
+    ' //toTextInput.passwordRules = fromTextInput.passwordRules;',
+  ); // ### HACK !!!
+  content = content.replaceAll(
+    ' [toTextInput setSelectedTextRange:fromTextInput.selectedTextRange notifyDelegate:NO];',
+    ' //[toTextInput setSelectedTextRange:fromTextInput.selectedTextRange notifyDelegate:NO];',
+  ); // ### HACK !!!
   fs.writeFileSync(file, content);
 }
 
@@ -81,7 +133,7 @@ function processDirectory(rootPath: string) {
       return 0;
     })
     .forEach((file) => {
-      const filePath = path.join(rootPath, file.name)
+      const filePath = path.join(rootPath, file.name);
       if (file.isDirectory()) {
         processDirectory(filePath);
       } else if (file.name.endsWith('.h') || file.name.endsWith('.mm')) {
