@@ -10,7 +10,9 @@ function replaceType(content: string, before: string, after: string) {
   content = content.replaceAll(`[${before} `, `[${after} `);
   content = content.replaceAll(`(${before} `, `(${after} `);
   content = content.replaceAll(`(${before}<`, `(${after}<`);
+  content = content.replaceAll(` ${before}<`, ` ${after}<`);
   content = content.replaceAll(`<${before} `, `<${after} `);
+  content = content.replaceAll(` ${before}\n`, ` ${after}\n`);
   return content;
 }
 
@@ -35,6 +37,7 @@ function fabricateFile(file: string) {
   }
   content = replaceType(content, 'UIColor', 'RCTUIColor');
   content = replaceType(content, 'UIView', 'RCTUIView');
+  content = replaceType(content, 'UIScrollView', 'RCTUIScrollView');
   content = content.replaceAll(
     '#if TARGET_OS_MAC && TARGET_OS_IPHONE',
     '#if TARGET_OS_MAC && (TARGET_OS_IPHONE || TARGET_OS_OSX)',
@@ -85,73 +88,62 @@ function fabricateFile(file: string) {
     ';\n\ninline CATransform3D RCTCATransform3DFromTransformMatrix(const facebook::react::Transform &transformMatrix)',
     '\n#endif\n\ninline CATransform3D RCTCATransform3DFromTransformMatrix(const facebook::react::Transform &transformMatrix)',
   ); // ### HACK !!!
-  commentOut(content, '');
-  content = content.replaceAll(
-    ' toTextInput.inputAccessoryView = fromTextInput.inputAccessoryView;',
-    ' //toTextInput.inputAccessoryView = fromTextInput.inputAccessoryView; ',
+  commentOut(
+    content,
+    'toTextInput.inputAccessoryView = fromTextInput.inputAccessoryView;',
   ); // ### HACK !!!
-  content = content.replaceAll(
-    ' toTextInput.autocapitalizationType = fromTextInput.autocapitalizationType;',
-    ' //toTextInput.autocapitalizationType = fromTextInput.autocapitalizationType;',
+  commentOut(
+    content,
+    'toTextInput.autocapitalizationType = fromTextInput.autocapitalizationType;',
   ); // ### HACK !!!
-  content = content.replaceAll(
-    ' toTextInput.autocorrectionType = fromTextInput.autocorrectionType;',
-    ' //toTextInput.autocorrectionType = fromTextInput.autocorrectionType;',
+  commentOut(
+    content,
+    'toTextInput.autocorrectionType = fromTextInput.autocorrectionType;',
   ); // ### HACK !!!
-  content = content.replaceAll(
-    ' toTextInput.keyboardAppearance = fromTextInput.keyboardAppearance;',
-    ' //toTextInput.keyboardAppearance = fromTextInput.keyboardAppearance;',
+  commentOut(
+    content,
+    'toTextInput.keyboardAppearance = fromTextInput.keyboardAppearance;',
   ); // ### HACK !!!
-  content = content.replaceAll(
-    ' toTextInput.spellCheckingType = fromTextInput.spellCheckingType;',
-    ' //toTextInput.spellCheckingType = fromTextInput.spellCheckingType;',
+  commentOut(
+    content,
+    'toTextInput.spellCheckingType = fromTextInput.spellCheckingType;',
   ); // ### HACK !!!
-  content = content.replaceAll(
-    ' toTextInput.clearButtonMode = fromTextInput.clearButtonMode;',
-    ' //toTextInput.clearButtonMode = fromTextInput.clearButtonMode;',
+
+  commentOut(
+    content,
+    'toTextInput.clearButtonMode = fromTextInput.clearButtonMode;',
   ); // ### HACK !!!
-  content = content.replaceAll(
-    ' toTextInput.secureTextEntry = fromTextInput.secureTextEntry;',
-    ' //toTextInput.secureTextEntry = fromTextInput.secureTextEntry;',
+  commentOut(
+    content,
+    'toTextInput.secureTextEntry = fromTextInput.secureTextEntry;',
   ); // ### HACK !!!
-  content = content.replaceAll(
-    ' toTextInput.keyboardType = fromTextInput.keyboardType;',
-    ' //toTextInput.keyboardType = fromTextInput.keyboardType;',
+  commentOut(content, 'toTextInput.keyboardType = fromTextInput.keyboardType;'); // ### HACK !!!
+  commentOut(
+    content,
+    'toTextInput.textContentType = fromTextInput.textContentType;',
   ); // ### HACK !!!
-  content = content.replaceAll(
-    ' toTextInput.textContentType = fromTextInput.textContentType;',
-    ' //toTextInput.textContentType = fromTextInput.textContentType;',
+  commentOut(
+    content,
+    'toTextInput.passwordRules = fromTextInput.passwordRules;',
   ); // ### HACK !!!
-  content = content.replaceAll(
-    ' toTextInput.passwordRules = fromTextInput.passwordRules;',
-    ' //toTextInput.passwordRules = fromTextInput.passwordRules;',
-  ); // ### HACK !!!
-  content = content.replaceAll(
-    ' [toTextInput setSelectedTextRange:fromTextInput.selectedTextRange notifyDelegate:NO];',
-    ' //[toTextInput setSelectedTextRange:fromTextInput.selectedTextRange notifyDelegate:NO];',
+  commentOut(
+    content,
+    '[toTextInput setSelectedTextRange:fromTextInput.selectedTextRange notifyDelegate:NO];',
   ); // ### HACK !!!
   content = content.replaceAll(
     'return autoCorrect.has_value() ? (*autoCorrect ? UITextAutocorrectionTypeYes : UITextAutocorrectionTypeNo)\n  : UITextAutocorrectionTypeDefault;',
     'return NO;',
   ); // ### HACK !!!
-  content = content.replaceAll(
-    ' _label.allowsDefaultTighteningForTruncation = YES;',
-    ' //_label.allowsDefaultTighteningForTruncation = YES;',
-  ); // ### HACK !!!
-  content = content.replaceAll(
-    ' _label.adjustsFontSizeToFitWidth = YES;',
-    ' //_label.adjustsFontSizeToFitWidth = YES;',
-  ); // ### HACK !!!
-  content = content.replaceAll(
-    ' self.center = CGPoint{CGRectGetMidX(frame), CGRectGetMidY(frame)};',
-    ' //self.center = CGPoint{CGRectGetMidX(frame), CGRectGetMidY(frame)};',
-  ); // ### HACK !!!
-  content = content.replaceAll('(UITouch ', '(RCTUITouch '); // ### HACK !!!
-  content = content.replaceAll(' UITouch ', ' RCTUITouch '); // ### HACK !!!
-  content = content.replaceAll('<UITouch ', '<RCTUITouch '); // ### HACK !!!
-  content = content.replaceAll(' UISwitch ', ' RCTSwitch '); // ### HACK !!!
-  content = content.replaceAll('[UISwitch ', '[RCTSwitch '); // ### HACK !!!
-  content = content.replaceAll('(UISwitch ', '(RCTSwitch '); // ### HACK !!!
+  commentOut(content, '_label.allowsDefaultTighteningForTruncation = YES;');
+  commentOut(content, '_label.adjustsFontSizeToFitWidth = YES;');
+  commentOut(
+    content,
+    'self.center = CGPoint{CGRectGetMidX(frame), CGRectGetMidY(frame)};',
+  );
+
+  content = replaceType(content, 'UITouch', 'RCTUITouch'); // ### HACK !!!
+  content = replaceType(content, 'UISwitch', 'RCTSwitch'); // ### HACK !!!
+
   content = content.replaceAll(
     '\n\n#import "RCTSwitchComponentView.h"',
     '\n#import "React/RCTSwitch.h"\n#import "RCTSwitchComponentView.h"',
@@ -161,41 +153,38 @@ function fabricateFile(file: string) {
     'RCTUIView* contentView = [RCTUIView init];\n[contentView.superview addSubview:_switchView];\nself.contentView = contentView;',
   );
 
-  content = content.replaceAll(
-    ' [_switchView addTarget:self action:@selector(onChange:) forControlEvents:UIControlEventValueChanged];',
-    ' //[_switchView addTarget:self action:@selector(onChange:) forControlEvents:UIControlEventValueChanged];',
+  commentOut(
+    content,
+    '[_switchView addTarget:self action:@selector(onChange:) forControlEvents:UIControlEventValueChanged];',
   );
-  content = content.replaceAll(
-    ' _switchView.tintColor = RCTUIColorFromSharedColor(newSwitchProps.tintColor);',
-    ' //_switchView.tintColor = RCTUIColorFromSharedColor(newSwitchProps.tintColor);',
-  ); // ### HACK !!!
-  content = content.replaceAll(
-    ' _switchView.onTintColor = RCTUIColorFromSharedColor(newSwitchProps.onTintColor);',
-    ' //_switchView.onTintColor = RCTUIColorFromSharedColor(newSwitchProps.onTintColor);',
-  ); // ### HACK !!!
-  content = content.replaceAll(
-    ' _switchView.thumbTintColor = RCTUIColorFromSharedColor(newSwitchProps.thumbTintColor);',
-    ' //_switchView.thumbTintColor = RCTUIColorFromSharedColor(newSwitchProps.thumbTintColor);',
-  ); // ### HACK !!!
-  content = content.replaceAll(
-    ' self.multipleTouchEnabled = YES;',
-    ' //self.multipleTouchEnabled = YES;',
-  ); // ### HACK !!!
+  commentOut(
+    content,
+    '_switchView.tintColor = RCTUIColorFromSharedColor(newSwitchProps.tintColor);',
+  );
+  commentOut(
+    content,
+    '_switchView.onTintColor = RCTUIColorFromSharedColor(newSwitchProps.onTintColor);',
+  );
+  commentOut(
+    content,
+    '_switchView.thumbTintColor = RCTUIColorFromSharedColor(newSwitchProps.thumbTintColor);',
+  );
+  commentOut(content, 'self.multipleTouchEnabled = YES;');
   content = content.replaceAll('[UIScreen mainScreen].scale', '1.0'); // ### HACK !!!
-  content = content.replaceAll('(UIScrollView ', '(RCTUIScrollView '); // ### HACK !!!
+  content = replaceType(content, 'UIScrollView', 'RCTUIScrollView'); // ### HACK !!!
 
-  content = content.replaceAll(
-    ' self.accessibilityElement.isAccessibilityElement = newViewProps.accessible;',
-    ' //self.accessibilityElement.isAccessibilityElement = newViewProps.accessible;',
-  ); // ### HACK !!!
-  content = content.replaceAll(
-    ' self.accessibilityElement.accessibilityLabel = RCTNSStringFromStringNilIfEmpty(newViewProps.accessibilityLabel);',
-    ' //self.accessibilityElement.accessibilityLabel = RCTNSStringFromStringNilIfEmpty(newViewProps.accessibilityLabel);',
-  ); // ### HACK !!!
-  content = content.replaceAll(
-    ' self.accessibilityElement.accessibilityHint = RCTNSStringFromStringNilIfEmpty(newViewProps.accessibilityHint);',
-    ' //self.accessibilityElement.accessibilityHint = RCTNSStringFromStringNilIfEmpty(newViewProps.accessibilityHint);',
-  ); // ### HACK !!!
+  commentOut(
+    content,
+    'self.accessibilityElement.isAccessibilityElement = newViewProps.accessible;',
+  );
+  commentOut(
+    content,
+    'self.accessibilityElement.accessibilityLabel = RCTNSStringFromStringNilIfEmpty(newViewProps.accessibilityLabel);',
+  );
+  commentOut(
+    content,
+    'self.accessibilityElement.accessibilityHint = RCTNSStringFromStringNilIfEmpty(newViewProps.accessibilityHint);',
+  );
   content = content.replaceAll(
     'RCTRoundPixelValue(insets.left);',
     'RCTRoundPixelValue(insets.left, 1.0);',
@@ -215,6 +204,15 @@ function fabricateFile(file: string) {
   content = content.replaceAll(
     '\n\n#import <MobileCoreServices/UTCoreTypes.h>',
     '\n\n#if !TARGET_OS_OSX // TODO(macOS GH#774)\n#import <MobileCoreServices/UTCoreTypes.h>\n#endif',
+  );
+  content = replaceType(content, 'UISlider', 'RCTSlider'); // ### HACK !!!
+  content = content.replaceAll(
+    '\n\n#import "RCTSliderComponentView.h"',
+    '\n\n#import "React/RCTSlider.h"\n#import "RCTSliderComponentView.h"',
+  );
+  content = content.replaceAll(
+    'self.contentView = _sliderView;',
+    'RCTUIView* contentView = [RCTUIView init];\n[contentView.superview addSubview:_sliderView];\nself.contentView = contentView;',
   );
   fs.writeFileSync(file, content);
 }
